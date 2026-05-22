@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NIC Engine - Vegetable Market</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Sarabun:wght@400;500;600;700&display=swap');
+        body { 
+            font-family: 'Sarabun', 'JetBrains Mono', sans-serif; 
+            background-color: #000000; 
+            color: #e5e7eb;
+        }
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        .nic-table th, .nic-table td {
+            border-bottom: 1px solid #1c1c1e;
+            border-right: 1px solid #1c1c1e;
+        }
+    </style>
+</head>
+<body class="min-h-screen pb-8">
+
+    <header class="bg-[#0a0a0c] border-b border-[#1c1c1e] h-14 flex items-center justify-between px-4 md:px-8 sticky top-0 z-50">
+        <div class="flex items-center gap-3">
+            <div class="flex flex-col leading-none">
+                <span class="text-xl font-black tracking-wider text-white font-mono">N<span class="text-[#F2C111]">I</span>C</span>
+                <span class="text-[8px] tracking-widest text-gray-400 font-mono font-bold mt-0.5">NEW INVESTOR CLUB</span>
+            </div>
+        </div>
+        
+        <div id="nic-top-status" class="hidden text-xs bg-[#000000] border border-[#1c1c1e] px-3 py-1 rounded flex items-center gap-3 font-mono">
+            <div>ROUND: <span id="display-current-round" class="text-[#F2C111] font-bold">1</span></div>
+            <div class="text-gray-600">/</div>
+            <div class="flex items-center gap-1">
+                <span class="text-gray-400 text-[10px]">MAX ROUNDS:</span>
+                <input type="number" id="input-game-rounds-live" min="1" oninput="updateMaxRoundsLive(this)"
+                    class="w-10 bg-[#1c1c1e] text-center border border-gray-700 rounded text-[#F2C111] font-bold py-0.5 focus:outline-none focus:border-[#F2C111]">
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto mt-6 px-4">
+
+        <div id="setup-section" class="bg-[#0a0a0c] border border-[#1c1c1e] rounded-xl p-6 max-w-lg mx-auto space-y-5 shadow-2xl">
+            <div class="text-center pb-2 border-b border-[#1c1c1e]">
+                <h2 class="text-md font-bold text-white tracking-wider font-mono">💼 NIC ACCOUNT REGISTRATION</h2>
+                <p class="text-xs text-gray-400 mt-1">กรอกชื่อบัญชีผู้เล่นทั้ง 7 คน และระบุรอบระบบเพื่อเตรียมดาวน์โหลดบอร์ดสเปรดชีต</p>
+            </div>
+
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-gray-400 mb-1.5 uppercase font-mono tracking-wider">SET MAX GAME ROUNDS</label>
+                    <input type="number" id="input-max-rounds" value="5" min="1" 
+                        class="w-full bg-[#000000] border border-[#1c1c1e] text-[#F2C111] rounded px-3 py-2 text-sm focus:outline-none focus:border-[#F2C111] font-bold font-mono">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-gray-400 mb-2 uppercase font-mono tracking-wider">ENTER TRADER NAMES (7 ACCOUNTS)</label>
+                    <div id="name-inputs-container" class="space-y-2 max-h-60 overflow-y-auto pr-1">
+                        </div>
+                </div>
+            </div>
+
+            <div class="pt-2 flex gap-3">
+                <button onclick="fillMockNames()" class="w-1/3 bg-[#1c1c1e] text-gray-300 text-xs py-2.5 rounded font-medium hover:bg-gray-700 transition">
+                    สุ่มชื่อทดสอบ
+                </button>
+                <button onclick="startGame()" class="w-2/3 bg-[#F2C111] hover:bg-[#d6a90e] text-black text-xs py-2.5 rounded font-bold tracking-wider transition shadow-md">
+                    INITIALIZE DASHBOARD
+                </button>
+            </div>
+        </div>
+
+        <div id="game-section" class="hidden space-y-4">
+            
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-stretch">
+                <div class="bg-[#0a0a0c] border border-[#1c1c1e] p-4 rounded-xl flex flex-col justify-between gap-2.5 md:col-span-1">
+                    <span class="text-[11px] font-bold tracking-wider text-gray-400 uppercase font-mono">CONTROLS</span>
+                    
+                    <button onclick="sortRankingManual()" class="w-full py-2 bg-[#3b72f4] text-white rounded text-xs font-bold hover:bg-[#285cd4] border border-blue-600 shadow-lg transition duration-200">
+                        ⚡ SORT RANKING (จัดอันดับรอบนี้)
+                    </button>
+
+                    <div class="flex gap-2">
+                        <button onclick="prevRound()" id="btn-prev" class="w-1/2 py-1.5 bg-[#1c1c1e] text-gray-300 rounded text-xs font-semibold hover:bg-gray-800 transition disabled:opacity-20">PREV</button>
+                        <button onclick="nextRound()" id="btn-next" class="w-1/2 py-1.5 bg-[#F2C111] text-black rounded text-xs font-bold hover:bg-[#d6a90e] transition font-mono">NEXT</button>
+                    </div>
+                </div>
+
+                <div class="bg-[#0a0a0c] border border-[#1c1c1e] p-4 rounded-xl md:col-span-3">
+                    <div class="flex justify-between items-center mb-2.5">
+                        <span class="text-[11px] font-bold tracking-wider text-gray-400 uppercase font-mono">📈 MARKET PRICE REGISTER (MAX: 5 THB)</span>
+                        <span class="text-[10px] font-mono text-[#F2C111] bg-[#F2C111]/10 px-2 py-0.5 rounded border border-[#F2C111]/20">REAL-TIME</span>
+                    </div>
+                    <div class="grid grid-cols-2 sm:grid-cols-5 gap-3" id="price-inputs-container">
+                        </div>
+                </div>
+            </div>
+
+            <div class="bg-[#0a0a0c] border border-[#1c1c1e] rounded-xl overflow-hidden shadow-xl">
+                <div class="p-4 border-b border-[#1c1c1e] flex justify-between items-center bg-[#101014]">
+                    <h3 class="text-xs font-bold font-mono tracking-wider text-white uppercase">📊 POSITION LEADERBOARD & ASSET OVERVIEW</h3>
+                    <span id="sorting-status" class="text-[10px] font-mono bg-amber-950/40 text-amber-300 px-2 py-0.5 rounded border border-amber-900/50">📝 กำลังคีย์ข้อมูล (กดปุ่ม SORT RANKING ด้านบนเมื่อกรอกเสร็จ)</span>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs font-mono nic-table border-collapse">
+                        <thead>
+                            <tr class="bg-[#050507] text-gray-400 text-[11px] select-none">
+                                <th class="p-3 text-center font-bold w-14">RANK</th>
+                                <th class="p-3 font-semibold text-white w-40">ACCOUNT_NAME</th>
+                                <th class="p-3 text-center bg-purple-950/10 text-purple-300 w-24">🍆 EGGPLANT</th>
+                                <th class="p-3 text-center bg-orange-950/10 text-orange-300 w-24">🥕 CARROT</th>
+                                <th class="p-3 text-center bg-red-950/10 text-red-300 w-24">🍅 TOMATO</th>
+                                <th class="p-3 text-center bg-yellow-950/10 text-yellow-300 w-24">🌽 CORN</th>
+                                <th class="p-3 text-center bg-green-950/10 text-emerald-300 w-24">🥦 BROCCOLI</th>
+                                <th class="p-3 text-right text-emerald-400 font-bold w-28">ROUND_PNL</th>
+                                <th class="p-3 text-right text-[#F2C111] bg-[#0e0e12] font-bold w-32">TOTAL_MARGIN</th>
+                            </tr>
+                        </thead>
+                        <tbody id="webull-table-body" class="divide-y divide-[#1c1c1e]">
+                            </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <script>
+        const VEGETABLES = [
+            { id: 'eggplant', name: '🍆 ม่วง', bgClass: 'bg-purple-950/5 text-purple-400' },
+            { id: 'carrot', name: '🥕 แครอท', bgClass: 'bg-orange-950/5 text-orange-400' },
+            { id: 'tomato', name: '🍅 มะเขือ', bgClass: 'bg-red-950/5 text-red-400' },
+            { id: 'corn', name: '🌽 ข้าวโพด', bgClass: 'bg-yellow-950/5 text-yellow-400' },
+            { id: 'broccoli', name: '🥦 บรอก', bgClass: 'bg-green-950/5 text-emerald-400' }
+        ];
+
+        let maxRounds = 5;
+        let currentRound = 1;
+        let roundPrices = {};
+        let players = [];
+        let isGameOver = false;
+
+        window.onload = function() {
+            const container = document.getElementById('name-inputs-container');
+            container.innerHTML = '';
+            for (let i = 1; i <= 7; i++) {
+                container.innerHTML += `
+                    <div class="flex items-center gap-2 bg-[#000000] p-1.5 rounded border border-[#1c1c1e]">
+                        <span class="text-xs font-mono text-gray-500 w-8 text-center">#0${i}</span>
+                        <input type="text" id="player-name-in-${i}" placeholder="Account ID / ชื่อกลุ่มที่ ${i}" 
+                            class="flex-1 bg-transparent text-white text-xs py-0.5 focus:outline-none">
+                    </div>
+                `;
+            }
+        };
+
+        function fillMockNames() {
+            for (let i = 1; i <= 7; i++) {
+                document.getElementById(`player-name-in-${i}`).value = `NIC_TRADER_0${i}`;
+            }
+        }
+
+        function startGame() {
+            maxRounds = parseInt(document.getElementById('input-max-rounds').value) || 5;
+            document.getElementById('input-game-rounds-live').value = maxRounds;
+            
+            players = [];
+            for (let i = 1; i <= 7; i++) {
+                let inputName = document.getElementById(`player-name-in-${i}`).value.trim();
+                let finalName = inputName ? inputName.toUpperCase() : `NIC_ACC_0${i}`;
+                
+                players.push({
+                    id: i,
+                    name: finalName,
+                    inventory: { eggplant: 0, carrot: 0, tomato: 0, corn: 0, broccoli: 0 },
+                    roundScores: {},
+                    totalScore: 0,
+                    rankDisplay: i // อันดับที่จะโชว์บนหน้าจอ
+                });
+            }
+            
+            for(let r = 1; r <= 100; r++) {
+                roundPrices[r] = { eggplant: 1, carrot: 1, tomato: 1, corn: 1, broccoli: 1 };
+            }
+
+            document.getElementById('setup-section').classList.add('hidden');
+            document.getElementById('nic-top-status').classList.remove('hidden');
+            document.getElementById('game-section').classList.remove('hidden');
+            
+            initPriceInputs();
+            calculateScores(false); // เริ่มต้นแบบยังไม่กดเรียง
+        }
+
+        function updateMaxRoundsLive(inputEl) {
+            maxRounds = parseInt(inputEl.value) || 1;
+            renderGamePage();
+        }
+
+        function initPriceInputs() {
+            const container = document.getElementById('price-inputs-container');
+            container.innerHTML = '';
+            
+            VEGETABLES.forEach(veg => {
+                const div = document.createElement('div');
+                div.className = `p-2 rounded bg-[#000000] border border-[#1c1c1e] flex justify-between items-center`;
+                div.innerHTML = `
+                    <span class="text-[11px] font-bold ${veg.bgClass.split(' ')[1]}">${veg.name}</span>
+                    <input type="number" data-veg="${veg.id}" min="0" max="5" value="${roundPrices[currentRound][veg.id]}" 
+                        oninput="updateWebullPrice(this)" 
+                        class="w-11 bg-[#0a0a0c] text-center text-xs font-bold border border-[#1c1c1e] rounded py-1 text-white focus:outline-none focus:border-[#F2C111]">
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function updateWebullPrice(inputEl) {
+            const vegId = inputEl.getAttribute('data-veg');
+            let val = parseInt(inputEl.value) || 0;
+            
+            if (val > 5) { val = 5; inputEl.value = 5; }
+            if (val < 0) { val = 0; inputEl.value = 0; }
+
+            roundPrices[currentRound][vegId] = val;
+            calculateScores(false); // พิมพ์ราคาอยู่ ตารางจะยังไม่สลับที่
+        }
+
+        // ปรับ Logic: เพิ่ม Parameter 'triggerSort' เพื่อเลือกว่าจะขยับตารางตอนไหน
+        function calculateScores(triggerSort = false) {
+            players.forEach(player => {
+                let roundScore = 0;
+                VEGETABLES.forEach(veg => {
+                    let qty = player.inventory[veg.id] || 0;
+                    let price = roundPrices[currentRound][veg.id] || 0;
+                    roundScore += qty * price;
+                });
+                player.roundScores[currentRound] = roundScore;
+
+                let accumulatedScore = 0;
+                for (let r = 1; r <= currentRound; r++) {
+                    VEGETABLES.forEach(veg => {
+                        let qty = player.inventory[veg.id] || 0;
+                        let priceAtRound = roundPrices[r][veg.id] || 0;
+                        accumulatedScore += qty * priceAtRound;
+                    });
+                }
+                player.totalScore = accumulatedScore;
+            });
+
+            // ถ้ากดยืนยันการเรียงลำดับ หรือเกมจบลงแล้ว ให้ทำการ Sort และอัปเดตอันดับ
+            if (triggerSort || isGameOver) {
+                players.sort((a, b) => b.totalScore - a.totalScore);
+                players.forEach((p, idx) => p.rankDisplay = idx + 1);
+            }
+            
+            renderWebullTable();
+        }
+
+        // ฟังก์ชันเมื่อกดปุ่ม SORT RANKING เองแบบ Manual
+        function sortRankingManual() {
+            calculateScores(true); // บังคับสลับแถวทันที
+            
+            const statusLabel = document.getElementById('sorting-status');
+            statusLabel.innerText = `🟢 เรียงอันดับผลคะแนนสะสมรอบที่ ${currentRound} สำเร็จแล้ว`;
+            statusLabel.className = "text-[10px] font-mono bg-emerald-950/40 text-emerald-300 px-2 py-0.5 rounded border border-emerald-900/50";
+        }
+
+        function updateInventory(playerId, vegId, val) {
+            const player = players.find(p => p.id === playerId);
+            if (player) {
+                player.inventory[vegId] = parseInt(val) || 0;
+                calculateScores(false); // พิมพ์ยอดหุ้นอยู่ ตารางจะไม่ขยับหนีนิ้ว
+            }
+        }
+
+        function updatePlayerName(playerId, newName) {
+            const player = players.find(p => p.id === playerId);
+            if (player) player.name = newName.toUpperCase();
+        }
+
+        function renderWebullTable() {
+            const tbody = document.getElementById('webull-table-body');
+            tbody.innerHTML = '';
+
+            players.forEach((player) => {
+                let rankColor = "text-gray-500";
+                if (player.rankDisplay === 1) rankColor = "text-[#F2C111] font-bold";
+                if (player.rankDisplay === 2) rankColor = "text-slate-300 font-bold";
+                if (player.rankDisplay === 3) rankColor = "text-amber-700 font-bold";
+
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-[#0e0e12] transition-colors";
+                
+                tr.innerHTML = `
+                    <td class="p-3 text-center text-xs ${rankColor}">0${player.rankDisplay}</td>
+                    <td class="p-2">
+                        <input type="text" value="${player.name}" onchange="updatePlayerName(${player.id}, this.value)"
+                            class="bg-transparent border-b border-transparent hover:border-[#1c1c1e] text-white focus:outline-none focus:border-[#F2C111] font-bold w-full py-0.5">
+                    </td>
+                    ${VEGETABLES.map(veg => `
+                        <td class="p-1.5 text-center ${veg.bgClass.split(' ')[0]}">
+                            <input type="number" min="0" value="${player.inventory[veg.id]}" 
+                                onchange="updateInventory(${player.id}, '${veg.id}', this.value)"
+                                class="w-14 text-center bg-[#000000] text-white border border-[#1c1c1e] rounded py-1 text-xs focus:outline-none focus:border-[#F2C111]">
+                        </td>
+                    `).join('')}
+                    <td class="p-3 text-right text-emerald-400 font-bold">+${player.roundScores[currentRound] || 0}.00</td>
+                    <td class="p-3 text-right font-bold text-[#F2C111] bg-[#050507]">${player.totalScore}.00</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function renderGamePage() {
+            document.getElementById('display-current-round').innerText = currentRound;
+            document.getElementById('btn-prev').disabled = (currentRound === 1 || isGameOver);
+            
+            const nextBtn = document.getElementById('btn-next');
+            if (currentRound >= maxRounds) {
+                nextBtn.innerText = "MARKET CLOSE 🏁";
+                nextBtn.className = "w-1/2 py-1.5 bg-red-600 text-white font-bold rounded text-xs hover:bg-red-700 transition cursor-pointer";
+            } else {
+                nextBtn.innerText = "NEXT ROUND";
+                nextBtn.className = "w-1/2 py-1.5 bg-[#F2C111] text-black font-bold rounded text-xs hover:bg-[#d6a90e] transition cursor-pointer";
+            }
+
+            // แจ้งเตือนสตาฟให้กดจัดอันดับใหม่ทุกครั้งที่ข้ามรอบ
+            const statusLabel = document.getElementById('sorting-status');
+            statusLabel.innerText = `📝 กำลังคีย์ข้อมูลรอบที่ ${currentRound} (กดปุ่ม SORT RANKING ด้านบนเมื่อกรอกเสร็จ)`;
+            statusLabel.className = "text-[10px] font-mono bg-amber-950/40 text-amber-300 px-2 py-0.5 rounded border border-amber-900/50";
+
+            initPriceInputs();
+            calculateScores(false); // ข้ามรอบใหม่ตารางจะนิ่งอยู่ จนกว่าจะกดจัดอันดับรอบใหม่
+        }
+
+        function nextRound() {
+            if (currentRound < maxRounds) {
+                currentRound++;
+                renderGamePage();
+            } else {
+                isGameOver = true;
+                const statusLabel = document.getElementById('sorting-status');
+                statusLabel.innerText = "🔓 FINAL RANKINGS CALCULATED (จบเกมปิดสัญญาสมบูรณ์)";
+                statusLabel.className = "text-[10px] font-mono bg-emerald-950/40 text-emerald-300 px-2 py-0.5 rounded border border-emerald-900/50";
+                calculateScores(true);
+                alert("🚨 NIC SYSTEM: สรุปผลปิดสัญญารอบสุดท้ายและล็อกผลการแข่งขันถาวรเรียบร้อยครับ!");
+            }
+        }
+
+        function prevRound() {
+            if (currentRound > 1 && !isGameOver) {
+                currentRound--;
+                renderGamePage();
+            }
+        }
+    </script>
+</body>
+</html>
