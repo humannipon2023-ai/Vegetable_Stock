@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NIC Engine - Vegetable Market</title>
+    <title>NIC Engine - Autonomous Market</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Sarabun:wght@400;500;600;700&display=swap');
@@ -48,19 +48,26 @@
 
         <div id="setup-section" class="bg-[#0a0a0c] border border-[#1c1c1e] rounded-xl p-6 max-w-lg mx-auto space-y-5 shadow-2xl">
             <div class="text-center pb-2 border-b border-[#1c1c1e]">
-                <h2 class="text-md font-bold text-white tracking-wider font-mono">💼 NIC ACCOUNT REGISTRATION</h2>
-                <p class="text-xs text-gray-400 mt-1">กรอกชื่อบัญชีผู้เล่นทั้ง 7 คน และระบุรอบระบบเพื่อเตรียมดาวน์โหลดบอร์ดสเปรดชีต</p>
+                <h2 class="text-md font-bold text-white tracking-wider font-mono">💼 NIC GROUP SETUP</h2>
+                <p class="text-xs text-gray-400 mt-1">ผู้คุมแต่ละคนกำหนดรอบและจำนวนสมาชิกในกลุ่มตัวเองเพื่อสร้างกระดานแยกเครื่อง</p>
             </div>
 
             <div class="space-y-4">
-                <div>
-                    <label class="block text-xs font-semibold text-gray-400 mb-1.5 uppercase font-mono tracking-wider">SET MAX GAME ROUNDS</label>
-                    <input type="number" id="input-max-rounds" value="5" min="1" 
-                        class="w-full bg-[#000000] border border-[#1c1c1e] text-[#F2C111] rounded px-3 py-2 text-sm focus:outline-none focus:border-[#F2C111] font-bold font-mono">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-400 mb-1.5 uppercase font-mono tracking-wider">GAME ROUNDS</label>
+                        <input type="number" id="input-max-rounds" value="5" min="1" 
+                            class="w-full bg-[#000000] border border-[#1c1c1e] text-[#F2C111] rounded px-3 py-2 text-sm focus:outline-none focus:border-[#F2C111] font-bold font-mono">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-400 mb-1.5 uppercase font-mono tracking-wider">TOTAL TRADERS</label>
+                        <input type="number" id="input-total-players" value="5" min="1" max="20" oninput="generateNameInputs()"
+                            class="w-full bg-[#000000] border border-[#1c1c1e] text-[#F2C111] rounded px-3 py-2 text-sm focus:outline-none focus:border-[#F2C111] font-bold font-mono">
+                    </div>
                 </div>
 
                 <div>
-                    <label class="block text-xs font-semibold text-gray-400 mb-2 uppercase font-mono tracking-wider">ENTER TRADER NAMES (7 ACCOUNTS)</label>
+                    <label class="block text-xs font-semibold text-gray-400 mb-2 uppercase font-mono tracking-wider">ENTER MEMBER NAMES</label>
                     <div id="name-inputs-container" class="space-y-2 max-h-60 overflow-y-auto pr-1">
                         </div>
                 </div>
@@ -71,7 +78,7 @@
                     สุ่มชื่อทดสอบ
                 </button>
                 <button onclick="startGame()" class="w-2/3 bg-[#F2C111] hover:bg-[#d6a90e] text-black text-xs py-2.5 rounded font-bold tracking-wider transition shadow-md">
-                    INITIALIZE DASHBOARD
+                    GENERATE DASHBOARD
                 </button>
             </div>
         </div>
@@ -142,28 +149,34 @@
         ];
 
         let maxRounds = 5;
+        let totalPlayers = 5;
         let currentRound = 1;
         let roundPrices = {};
         let players = [];
         let isGameOver = false;
 
         window.onload = function() {
+            generateNameInputs();
+        };
+
+        function generateNameInputs() {
+            totalPlayers = parseInt(document.getElementById('input-total-players').value) || 5;
             const container = document.getElementById('name-inputs-container');
             container.innerHTML = '';
-            for (let i = 1; i <= 7; i++) {
+            for (let i = 1; i <= totalPlayers; i++) {
                 container.innerHTML += `
                     <div class="flex items-center gap-2 bg-[#000000] p-1.5 rounded border border-[#1c1c1e]">
                         <span class="text-xs font-mono text-gray-500 w-8 text-center">#0${i}</span>
-                        <input type="text" id="player-name-in-${i}" placeholder="Account ID / ชื่อกลุ่มที่ ${i}" 
+                        <input type="text" id="player-name-in-${i}" placeholder="ชื่อสมาชิกกลุ่มคนที่ ${i}" 
                             class="flex-1 bg-transparent text-white text-xs py-0.5 focus:outline-none">
                     </div>
                 `;
             }
-        };
+        }
 
         function fillMockNames() {
-            for (let i = 1; i <= 7; i++) {
-                document.getElementById(`player-name-in-${i}`).value = `NIC_TRADER_0${i}`;
+            for (let i = 1; i <= totalPlayers; i++) {
+                document.getElementById(`player-name-in-${i}`).value = `NIC_MEMBER_0${i}`;
             }
         }
 
@@ -172,17 +185,23 @@
             document.getElementById('input-game-rounds-live').value = maxRounds;
             
             players = [];
-            for (let i = 1; i <= 7; i++) {
+            for (let i = 1; i <= totalPlayers; i++) {
                 let inputName = document.getElementById(`player-name-in-${i}`).value.trim();
-                let finalName = inputName ? inputName.toUpperCase() : `NIC_ACC_0${i}`;
+                let finalName = inputName ? inputName.toUpperCase() : `MEMBER_ACC_0${i}`;
                 
+                // สร้าง Object ปริมาณหุ้นผักแยกรายรอบเตรียมไว้ล่วงหน้า 100 รอบ เพื่อแก้ปัญหายอดค้างรอบเก่า
+                let initialInventoryByRound = {};
+                for(let r = 1; r <= 100; r++) {
+                    initialInventoryByRound[r] = { eggplant: 0, carrot: 0, tomato: 0, corn: 0, broccoli: 0 };
+                }
+
                 players.push({
                     id: i,
                     name: finalName,
-                    inventory: { eggplant: 0, carrot: 0, tomato: 0, corn: 0, broccoli: 0 },
+                    inventoryByRound: initialInventoryByRound, // ปรับโครงสร้างตรงนี้แยกเป็นรอบๆ
                     roundScores: {},
                     totalScore: 0,
-                    rankDisplay: i // อันดับที่จะโชว์บนหน้าจอ
+                    rankDisplay: i 
                 });
             }
             
@@ -195,7 +214,7 @@
             document.getElementById('game-section').classList.remove('hidden');
             
             initPriceInputs();
-            calculateScores(false); // เริ่มต้นแบบยังไม่กดเรียง
+            calculateScores(false); 
         }
 
         function updateMaxRoundsLive(inputEl) {
@@ -228,24 +247,25 @@
             if (val < 0) { val = 0; inputEl.value = 0; }
 
             roundPrices[currentRound][vegId] = val;
-            calculateScores(false); // พิมพ์ราคาอยู่ ตารางจะยังไม่สลับที่
+            calculateScores(false); 
         }
 
-        // ปรับ Logic: เพิ่ม Parameter 'triggerSort' เพื่อเลือกว่าจะขยับตารางตอนไหน
         function calculateScores(triggerSort = false) {
             players.forEach(player => {
+                // 1. คำนวณแต้มรอบนี้ (ดึงยอดผักเฉพาะของรอบปัจจุบันมาคูณราคารอบปัจจุบัน)
                 let roundScore = 0;
                 VEGETABLES.forEach(veg => {
-                    let qty = player.inventory[veg.id] || 0;
+                    let qty = player.inventoryByRound[currentRound][veg.id] || 0;
                     let price = roundPrices[currentRound][veg.id] || 0;
                     roundScore += qty * price;
                 });
                 player.roundScores[currentRound] = roundScore;
 
+                // 2. คำนวณแต้มสะสมรวม (วนลูปดึงยอดผักแต่ละรอบ คูณ ราคารอบนั้นๆ แล้วเอามาบวกรวมกัน)
                 let accumulatedScore = 0;
                 for (let r = 1; r <= currentRound; r++) {
                     VEGETABLES.forEach(veg => {
-                        let qty = player.inventory[veg.id] || 0;
+                        let qty = player.inventoryByRound[r][veg.id] || 0;
                         let priceAtRound = roundPrices[r][veg.id] || 0;
                         accumulatedScore += qty * priceAtRound;
                     });
@@ -253,7 +273,6 @@
                 player.totalScore = accumulatedScore;
             });
 
-            // ถ้ากดยืนยันการเรียงลำดับ หรือเกมจบลงแล้ว ให้ทำการ Sort และอัปเดตอันดับ
             if (triggerSort || isGameOver) {
                 players.sort((a, b) => b.totalScore - a.totalScore);
                 players.forEach((p, idx) => p.rankDisplay = idx + 1);
@@ -262,10 +281,8 @@
             renderWebullTable();
         }
 
-        // ฟังก์ชันเมื่อกดปุ่ม SORT RANKING เองแบบ Manual
         function sortRankingManual() {
-            calculateScores(true); // บังคับสลับแถวทันที
-            
+            calculateScores(true); 
             const statusLabel = document.getElementById('sorting-status');
             statusLabel.innerText = `🟢 เรียงอันดับผลคะแนนสะสมรอบที่ ${currentRound} สำเร็จแล้ว`;
             statusLabel.className = "text-[10px] font-mono bg-emerald-950/40 text-emerald-300 px-2 py-0.5 rounded border border-emerald-900/50";
@@ -274,8 +291,9 @@
         function updateInventory(playerId, vegId, val) {
             const player = players.find(p => p.id === playerId);
             if (player) {
-                player.inventory[vegId] = parseInt(val) || 0;
-                calculateScores(false); // พิมพ์ยอดหุ้นอยู่ ตารางจะไม่ขยับหนีนิ้ว
+                // เก็บค่าผักลงในรอยแยกของรอบปัจจุบันเท่านั้น
+                player.inventoryByRound[currentRound][vegId] = parseInt(val) || 0;
+                calculateScores(false); 
             }
         }
 
@@ -297,6 +315,7 @@
                 const tr = document.createElement('tr');
                 tr.className = "hover:bg-[#0e0e12] transition-colors";
                 
+                // ดึงค่าปริมาณหุ้นผักมาแสดงในช่องกรอก โดยดึงเฉพาะของรอบปัจจุบันมาแสดง
                 tr.innerHTML = `
                     <td class="p-3 text-center text-xs ${rankColor}">0${player.rankDisplay}</td>
                     <td class="p-2">
@@ -305,7 +324,7 @@
                     </td>
                     ${VEGETABLES.map(veg => `
                         <td class="p-1.5 text-center ${veg.bgClass.split(' ')[0]}">
-                            <input type="number" min="0" value="${player.inventory[veg.id]}" 
+                            <input type="number" min="0" value="${player.inventoryByRound[currentRound][veg.id]}" 
                                 onchange="updateInventory(${player.id}, '${veg.id}', this.value)"
                                 class="w-14 text-center bg-[#000000] text-white border border-[#1c1c1e] rounded py-1 text-xs focus:outline-none focus:border-[#F2C111]">
                         </td>
@@ -330,13 +349,12 @@
                 nextBtn.className = "w-1/2 py-1.5 bg-[#F2C111] text-black font-bold rounded text-xs hover:bg-[#d6a90e] transition cursor-pointer";
             }
 
-            // แจ้งเตือนสตาฟให้กดจัดอันดับใหม่ทุกครั้งที่ข้ามรอบ
             const statusLabel = document.getElementById('sorting-status');
             statusLabel.innerText = `📝 กำลังคีย์ข้อมูลรอบที่ ${currentRound} (กดปุ่ม SORT RANKING ด้านบนเมื่อกรอกเสร็จ)`;
-            statusLabel.className = "text-[10px] font-mono bg-amber-950/40 text-amber-300 px-2 py-0.5 rounded border border-amber-900/50";
+            statusLabel.className = "text-[#ffab00] text-[10px] font-mono bg-amber-950/40 text-amber-300 px-2 py-0.5 rounded border border-amber-900/50";
 
             initPriceInputs();
-            calculateScores(false); // ข้ามรอบใหม่ตารางจะนิ่งอยู่ จนกว่าจะกดจัดอันดับรอบใหม่
+            calculateScores(false); 
         }
 
         function nextRound() {
