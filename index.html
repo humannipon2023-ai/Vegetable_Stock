@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NIC Engine - Autonomous Market</title>
+    <title>NIC Engine - Autonomous Market v2</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Sarabun:wght@400;500;600;700&display=swap');
@@ -49,7 +49,7 @@
         <div id="setup-section" class="bg-[#0a0a0c] border border-[#1c1c1e] rounded-xl p-6 max-w-lg mx-auto space-y-5 shadow-2xl">
             <div class="text-center pb-2 border-b border-[#1c1c1e]">
                 <h2 class="text-md font-bold text-white tracking-wider font-mono">💼 NIC GROUP SETUP</h2>
-                <p class="text-xs text-gray-400 mt-1">ผู้คุมแต่ละคนกำหนดรอบและจำนวนสมาชิกในกลุ่มตัวเองเพื่อสร้างกระดานแยกเครื่อง</p>
+                <p class="text-xs text-gray-400 mt-1">ผู้คุมกำหนดรอบและจำนวนสมาชิกเพื่อสร้างกระดานแยกเครื่อง</p>
             </div>
 
             <div class="space-y-4">
@@ -68,8 +68,7 @@
 
                 <div>
                     <label class="block text-xs font-semibold text-gray-400 mb-2 uppercase font-mono tracking-wider">ENTER MEMBER NAMES</label>
-                    <div id="name-inputs-container" class="space-y-2 max-h-60 overflow-y-auto pr-1">
-                        </div>
+                    <div id="name-inputs-container" class="space-y-2 max-h-60 overflow-y-auto pr-1"></div>
                 </div>
             </div>
 
@@ -89,7 +88,7 @@
                 <div class="bg-[#0a0a0c] border border-[#1c1c1e] p-4 rounded-xl flex flex-col justify-between gap-2.5 md:col-span-1">
                     <span class="text-[11px] font-bold tracking-wider text-gray-400 uppercase font-mono">CONTROLS</span>
                     
-                    <button onclick="sortRankingManual()" class="w-full py-2 bg-[#3b72f4] text-white rounded text-xs font-bold hover:bg-[#285cd4] border border-blue-600 shadow-lg transition duration-200">
+                    <button onclick="sortRankingManual()" class="w-full py-2 bg-[#3b72f4] text-white rounded text-xs font-bold hover:bg-[#285cd4] border border-blue-600 shadow-lg transition">
                         ⚡ SORT RANKING (จัดอันดับรอบนี้)
                     </button>
 
@@ -104,8 +103,7 @@
                         <span class="text-[11px] font-bold tracking-wider text-gray-400 uppercase font-mono">📈 MARKET PRICE REGISTER (MAX: 5 THB)</span>
                         <span class="text-[10px] font-mono text-[#F2C111] bg-[#F2C111]/10 px-2 py-0.5 rounded border border-[#F2C111]/20">REAL-TIME</span>
                     </div>
-                    <div class="grid grid-cols-2 sm:grid-cols-5 gap-3" id="price-inputs-container">
-                        </div>
+                    <div class="grid grid-cols-2 sm:grid-cols-5 gap-3" id="price-inputs-container"></div>
                 </div>
             </div>
 
@@ -130,8 +128,7 @@
                                 <th class="p-3 text-right text-[#F2C111] bg-[#0e0e12] font-bold w-32">TOTAL_MARGIN</th>
                             </tr>
                         </thead>
-                        <tbody id="webull-table-body" class="divide-y divide-[#1c1c1e]">
-                            </tbody>
+                        <tbody id="webull-table-body" class="divide-y divide-[#1c1c1e]"></tbody>
                     </table>
                 </div>
             </div>
@@ -167,8 +164,7 @@
                 container.innerHTML += `
                     <div class="flex items-center gap-2 bg-[#000000] p-1.5 rounded border border-[#1c1c1e]">
                         <span class="text-xs font-mono text-gray-500 w-8 text-center">#0${i}</span>
-                        <input type="text" id="player-name-in-${i}" placeholder="ชื่อสมาชิกกลุ่มคนที่ ${i}" 
-                            class="flex-1 bg-transparent text-white text-xs py-0.5 focus:outline-none">
+                        <input type="text" id="player-name-in-${i}" placeholder="ชื่อสมาชิกกลุ่มคนที่ ${i}" class="flex-1 bg-transparent text-white text-xs py-0.5 focus:outline-none">
                     </div>
                 `;
             }
@@ -189,16 +185,16 @@
                 let inputName = document.getElementById(`player-name-in-${i}`).value.trim();
                 let finalName = inputName ? inputName.toUpperCase() : `MEMBER_ACC_0${i}`;
                 
-                // สร้าง Object ปริมาณหุ้นผักแยกรายรอบเตรียมไว้ล่วงหน้า 100 รอบ เพื่อแก้ปัญหายอดค้างรอบเก่า
-                let initialInventoryByRound = {};
+                // สร้าง object คลังผักที่ผูกกับเลขรอบอย่างชัดเจน
+                let initialInventory = {};
                 for(let r = 1; r <= 100; r++) {
-                    initialInventoryByRound[r] = { eggplant: 0, carrot: 0, tomato: 0, corn: 0, broccoli: 0 };
+                    initialInventory[r] = { eggplant: 0, carrot: 0, tomato: 0, corn: 0, broccoli: 0 };
                 }
 
                 players.push({
                     id: i,
                     name: finalName,
-                    inventoryByRound: initialInventoryByRound, // ปรับโครงสร้างตรงนี้แยกเป็นรอบๆ
+                    inventory: initialInventory, // ตัวแปรหลักเก็บแยกตามรอบ
                     roundScores: {},
                     totalScore: 0,
                     rankDisplay: i 
@@ -213,8 +209,7 @@
             document.getElementById('nic-top-status').classList.remove('hidden');
             document.getElementById('game-section').classList.remove('hidden');
             
-            initPriceInputs();
-            calculateScores(false); 
+            renderGamePage();
         }
 
         function updateMaxRoundsLive(inputEl) {
@@ -231,18 +226,16 @@
                 div.className = `p-2 rounded bg-[#000000] border border-[#1c1c1e] flex justify-between items-center`;
                 div.innerHTML = `
                     <span class="text-[11px] font-bold ${veg.bgClass.split(' ')[1]}">${veg.name}</span>
-                    <input type="number" data-veg="${veg.id}" min="0" max="5" value="${roundPrices[currentRound][veg.id]}" 
-                        oninput="updateWebullPrice(this)" 
+                    <input type="number" id="price-input-${veg.id}" min="0" max="5" value="${roundPrices[currentRound][veg.id]}" 
+                        oninput="updateWebullPrice('${veg.id}', this)" 
                         class="w-11 bg-[#0a0a0c] text-center text-xs font-bold border border-[#1c1c1e] rounded py-1 text-white focus:outline-none focus:border-[#F2C111]">
                 `;
                 container.appendChild(div);
             });
         }
 
-        function updateWebullPrice(inputEl) {
-            const vegId = inputEl.getAttribute('data-veg');
+        function updateWebullPrice(vegId, inputEl) {
             let val = parseInt(inputEl.value) || 0;
-            
             if (val > 5) { val = 5; inputEl.value = 5; }
             if (val < 0) { val = 0; inputEl.value = 0; }
 
@@ -252,20 +245,20 @@
 
         function calculateScores(triggerSort = false) {
             players.forEach(player => {
-                // 1. คำนวณแต้มรอบนี้ (ดึงยอดผักเฉพาะของรอบปัจจุบันมาคูณราคารอบปัจจุบัน)
+                // 1. คิดคะแนนเฉพาะรอบปัจจุบัน (SumProduct ของรอบนี้)
                 let roundScore = 0;
                 VEGETABLES.forEach(veg => {
-                    let qty = player.inventoryByRound[currentRound][veg.id] || 0;
+                    let qty = player.inventory[currentRound][veg.id] || 0;
                     let price = roundPrices[currentRound][veg.id] || 0;
                     roundScore += qty * price;
                 });
                 player.roundScores[currentRound] = roundScore;
 
-                // 2. คำนวณแต้มสะสมรวม (วนลูปดึงยอดผักแต่ละรอบ คูณ ราคารอบนั้นๆ แล้วเอามาบวกรวมกัน)
+                // 2. คิดคะแนนรวมสะสมทบยอด (บวกสะสมทุกรอบตั้งแต่อดีตถึงรอบปัจจุบัน)
                 let accumulatedScore = 0;
                 for (let r = 1; r <= currentRound; r++) {
                     VEGETABLES.forEach(veg => {
-                        let qty = player.inventoryByRound[r][veg.id] || 0;
+                        let qty = player.inventory[r][veg.id] || 0;
                         let priceAtRound = roundPrices[r][veg.id] || 0;
                         accumulatedScore += qty * priceAtRound;
                     });
@@ -291,15 +284,10 @@
         function updateInventory(playerId, vegId, val) {
             const player = players.find(p => p.id === playerId);
             if (player) {
-                // เก็บค่าผักลงในรอยแยกของรอบปัจจุบันเท่านั้น
-                player.inventoryByRound[currentRound][vegId] = parseInt(val) || 0;
+                // บันทึกลงในรอบปัจจุบันเท่านั้นอย่างเด็ดขาด
+                player.inventory[currentRound][vegId] = parseInt(val) || 0;
                 calculateScores(false); 
             }
-        }
-
-        function updatePlayerName(playerId, newName) {
-            const player = players.find(p => p.id === playerId);
-            if (player) player.name = newName.toUpperCase();
         }
 
         function renderWebullTable() {
@@ -315,17 +303,15 @@
                 const tr = document.createElement('tr');
                 tr.className = "hover:bg-[#0e0e12] transition-colors";
                 
-                // ดึงค่าปริมาณหุ้นผักมาแสดงในช่องกรอก โดยดึงเฉพาะของรอบปัจจุบันมาแสดง
+                // สังเกตตรงนี้: แตกช่องดึงข้อมูลดักจับจาก player.inventory[currentRound] โดยตรงเพื่อให้เปลี่ยนหน้าแล้วเลขเปลี่ยน
                 tr.innerHTML = `
                     <td class="p-3 text-center text-xs ${rankColor}">0${player.rankDisplay}</td>
-                    <td class="p-2">
-                        <input type="text" value="${player.name}" onchange="updatePlayerName(${player.id}, this.value)"
-                            class="bg-transparent border-b border-transparent hover:border-[#1c1c1e] text-white focus:outline-none focus:border-[#F2C111] font-bold w-full py-0.5">
-                    </td>
+                    <td class="p-3 font-bold text-white">${player.name}</td>
                     ${VEGETABLES.map(veg => `
                         <td class="p-1.5 text-center ${veg.bgClass.split(' ')[0]}">
-                            <input type="number" min="0" value="${player.inventoryByRound[currentRound][veg.id]}" 
-                                onchange="updateInventory(${player.id}, '${veg.id}', this.value)"
+                            <input type="number" min="0" value="${player.inventory[currentRound][veg.id]}" 
+                                onshadow="this.value = player.inventory[currentRound]['${veg.id}']"
+                                oninput="updateInventory(${player.id}, '${veg.id}', this.value)"
                                 class="w-14 text-center bg-[#000000] text-white border border-[#1c1c1e] rounded py-1 text-xs focus:outline-none focus:border-[#F2C111]">
                         </td>
                     `).join('')}
@@ -367,7 +353,7 @@
                 statusLabel.innerText = "🔓 FINAL RANKINGS CALCULATED (จบเกมปิดสัญญาสมบูรณ์)";
                 statusLabel.className = "text-[10px] font-mono bg-emerald-950/40 text-emerald-300 px-2 py-0.5 rounded border border-emerald-900/50";
                 calculateScores(true);
-                alert("🚨 NIC SYSTEM: สรุปผลปิดสัญญารอบสุดท้ายและล็อกผลการแข่งขันถาวรเรียบร้อยครับ!");
+                alert("🚨 NIC SYSTEM: สรุปผลปิดสัญญารอบสุดท้ายเรียบร้อยครับ!");
             }
         }
 
